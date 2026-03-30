@@ -499,19 +499,19 @@ function renderHistory(rows) {
       ? `Nhập ${fmt(r.sl)} bình`
       : `Bán ${fmt(r.sl)} bình × ${fmt(r.gia)} đ`;
     const amount = isNhap ? fmt(r.tien) : fmt(r.tong);
-    const sub = isNhap ? `Tổng tiền nhập` : `Tổng tiền bán`;
-    return `
-      <div class="tx-card">
-        <div class="tx-badge ${isNhap?'nhap':'ban'}">${label}</div>
-        <div class="tx-info">
-          <div class="tx-main">${main}</div>
-          <div class="tx-sub">${sub}</div>
-        </div>
-        <div>
-          <div class="tx-amount ${isNhap?'nhap':'ban'}">${amount} đ</div>
-          <div class="tx-date">${r.ngay}</div>
-        </div>
-      </div>`;
+    const fmtNgay = (ngay) => {
+      if (!ngay) return '';
+      const parts = String(ngay).split('-');
+      if (parts.length === 3) return parts[2] + '/' + parts[1] + '/' + parts[0].slice(2);
+      return ngay;
+    };
+    return '<div class="tx-card">'
+      + '<div class="tx-badge ' + (isNhap?'nhap':'ban') + '">' + label + '</div>'
+      + '<div class="tx-info"><div class="tx-main">' + main + '</div></div>'
+      + '<div style="text-align:right;flex-shrink:0">'
+      + '<div class="tx-amount ' + (isNhap?'nhap':'ban') + '">' + amount + ' đ</div>'
+      + '<div class="tx-date">' + fmtNgay(r.ngay) + '</div>'
+      + '</div></div>';
   }).join('');
 }
 
