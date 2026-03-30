@@ -500,11 +500,21 @@ function renderHistory(rows) {
       : `Bán ${fmt(r.sl)} bình × ${fmt(r.gia)} đ`;
     const amount = isNhap ? fmt(r.tien) : fmt(r.tong);
     const fmtNgay = (ngay) => {
-      if (!ngay) return '';
-      const parts = String(ngay).split('-');
-      if (parts.length === 3) return parts[2] + '/' + parts[1] + '/' + parts[0].slice(2);
-      return ngay;
-    };
+  if (!ngay) return '';
+  // Nếu là datetime từ sheet: "3/30/2026 11:53:41" → lấy phần ngày "3/30/2026"
+  if (String(ngay).includes(' ')) {
+    ngay = String(ngay).split(' ')[0]; // Bỏ phần time
+  }
+  // Parse "M/D/YYYY" hoặc "MM/DD/YYYY" → "DD/MM/YY"
+  const parts = String(ngay).split('/');
+  if (parts.length === 3) {
+    const day = String(parts[1]).padStart(2, '0');
+    const month = String(parts[0]).padStart(2, '0');
+    const year = parts[2].slice(-2); // Lấy 2 số cuối
+    return day + '/' + month + '/' + year;
+  }
+  return ngay;
+};
     return '<div class="tx-card">'
       + '<div class="tx-badge ' + (isNhap?'nhap':'ban') + '">' + label + '</div>'
       + '<div class="tx-info"><div class="tx-main">' + main + '</div></div>'
