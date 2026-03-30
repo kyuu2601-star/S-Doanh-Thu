@@ -231,25 +231,6 @@
   }
   .toast.show { transform: translateX(-50%) translateY(0); }
 
-  .loading-overlay {
-    position: fixed; inset: 0;
-    background: rgba(245,243,238,0.9);
-    z-index: 150;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 15px;
-    color: var(--muted);
-  }
-  .spinner {
-    width: 24px; height: 24px;
-    border: 2px solid var(--border);
-    border-top-color: var(--text);
-    border-radius: 50%;
-    animation: spin 0.7s linear infinite;
-    margin-right: 10px;
-  }
-  @keyframes spin { to { transform: rotate(360deg); } }
 
   .section-title {
     font-size: 12px;
@@ -262,11 +243,6 @@
 </style>
 </head>
 <body>
-
-<!-- LOADING -->
-<div class="loading-overlay" id="loading" style="display:none">
-  <div class="spinner"></div> Đang tải...
-</div>
 
 <!-- TOAST -->
 <div class="toast" id="toast"></div>
@@ -420,9 +396,7 @@ function fmt(n) {
   return Math.round(n).toLocaleString('vi-VN');
 }
 
-function showLoading(v) {
-  document.getElementById('loading').style.display = v ? 'flex' : 'none';
-}
+function showLoading(v) { /* removed */ }
 
 function showToast(msg) {
   const t = document.getElementById('toast');
@@ -431,7 +405,7 @@ function showToast(msg) {
   setTimeout(() => t.classList.remove('show'), 2500);
 }
 
-async function submitForm() {
+function submitForm() {
   let payload = {};
   if (currentType === 'nhap') {
     const ngay = document.getElementById('nhap-ngay').value;
@@ -448,47 +422,68 @@ async function submitForm() {
     payload = { type: 'ban', ngay, sl: parseFloat(sl), gia: parseFloat(gia), tien: 0, tong };
   }
 
-  showLoading(true);
-  try {
-    // Dùng GET với params thay vì POST để tránh CORS preflight trên iOS Safari
-    const params = new URLSearchParams({
-      action: 'add',
-      type: payload.type,
-      ngay: payload.ngay,
-      sl: payload.sl,
-      gia: payload.gia || 0,
-      tien: payload.tien || 0,
-      tong: payload.tong || 0
+  // Thêm vào cache local ngay lập tức
+  const cache = JSON.parse(localStorage.getItem('doanhthu_cache') || '[]');
+  cache.push(payload);
+  localStorage.setItem('doanhthu_cache', JSON.stringify(cache));
+  renderHistory(cache);
+  renderStats(cache);
+
+  // Reset form ngay, không chờ
+  document.getElementById('nhap-sl').value = '';
+  document.getElementById('nhap-tien').value = '';
+  document.getElementById('ban-sl').value = '';
+  document.getElementById('ban-gia').value = '';
+  document.getElementById('preview-value').textContent = '—';
+  setDefaultDates();
+  showToast('✅ Đã lưu!');
+
+  // Upload ngầm, không block UI
+  const params = new URLSearchParams({
+    action: 'add',
+    type: payload.type,
+    ngay: payload.ngay,
+    sl: payload.sl,
+    gia: payload.gia || 0,
+    tien: payload.tien || 0,
+    tong: payload.tong || 0
+  });
+  fetch(SCRIPT_URL + '?' + params.toString(), { mode: 'no-cors' })
+    .then(() => {
+      // Sau khi lưu xong, fetch lại từ server để sync cache
+      setTimeout(() => loadData(), 2000);
+    })
+    .catch(() => {
+      // Nếu lỗi mạng, vẫn giữ trong cache local
     });
-    await fetch(SCRIPT_URL + '?' + params.toString(), { mode: 'no-cors' });
-    // no-cors không đọc được response nhưng request vẫn gửi thành công
-    showToast('✅ Đã lưu giao dịch!');
-    document.getElementById('nhap-sl').value = '';
-    document.getElementById('nhap-tien').value = '';
-    document.getElementById('ban-sl').value = '';
-    document.getElementById('ban-gia').value = '';
-    document.getElementById('preview-value').textContent = '—';
-    setDefaultDates();
-    // Delay nhỏ để Sheet kịp ghi xong trước khi đọc lại
-    setTimeout(() => loadData(), 1500);
-  } catch(e) {
-    showToast('❌ Lỗi kết nối. Kiểm tra internet.');
-    showLoading(false);
-  }
 }
 
 async function loadData() {
   if (!SCRIPT_URL) return;
-  showLoading(true);
+  // Hiện cache trước ngay lập tức
+  const cache = JSON.parse(localStorage.getItem('doanhthu_cache') || '[]');
+  if (cache.length) { renderHistory(cache); renderStats(cache); }
+  // Fetch ngầm từ server
   try {
     const res = await fetch(SCRIPT_URL + '?action=get', { mode: 'cors' });
     const data = await res.json();
-    renderHistory(data.rows || []);
-    renderStats(data.rows || []);
+    const rows = data.rows || [];
+    // Chuẩn hóa kiểu dữ liệu từ sheet
+    const normalized = rows.map(r => ({
+      type: r.type,
+      ngay: r.ngay,
+      sl: parseFloat(r.sl) || 0,
+      gia: parseFloat(r.gia) || 0,
+      tien: parseFloat(r.tien) || 0,
+      tong: parseFloat(r.tong) || 0,
+    }));
+    localStorage.setItem('doanhthu_cache', JSON.stringify(normalized));
+    renderHistory(normalized);
+    renderStats(normalized);
   } catch(e) {
-    showToast('❌ Không tải được dữ liệu');
+    // Không show lỗi nếu đã có cache
+    if (!cache.length) showToast('❌ Không tải được dữ liệu');
   }
-  showLoading(false);
 }
 
 function renderHistory(rows) {
