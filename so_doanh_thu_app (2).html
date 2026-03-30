@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sổ Doanh Thu</title>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f5f3ee;
+    --card: #ffffff;
+    --text: #1a1a1a;
+    --muted: #888;
+    --border: #e5e2da;
+    --nhap: #2d6a4f;
+    --nhap-bg: #d8f3dc;
+    --ban: #1d3557;
+    --ban-bg: #dde8f5;
+    --accent: #e63946;
+    --radius: 14px;
+    --shadow: 0 2px 16px rgba(0,0,0,0.07);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Be Vietnam Pro', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  /* HEADER */
+  header {
+    background: var(--text);
+    color: #fff;
+    padding: 18px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  header h1 { font-size: 17px; font-weight: 600; letter-spacing: -0.3px; }
+  header span { font-size: 12px; color: #aaa; }
+
+  /* TABS */
+  .tabs {
+    display: flex;
+    background: var(--card);
+    border-bottom: 1px solid var(--border);
+    padding: 0 16px;
+    gap: 4px;
+    position: sticky;
+    top: 57px;
+    z-index: 99;
+  }
+  .tab {
+    padding: 14px 18px;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--muted);
+    border: none;
+    background: none;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    font-family: inherit;
+    transition: all 0.2s;
+  }
+  .tab.active { color: var(--text); border-bottom-color: var(--text); }
+
+  /* PAGES */
+  .page { display: none; padding: 20px 16px; max-width: 680px; margin: 0 auto; }
+  .page.active { display: block; }
+
+  /* TỔNG HỢP */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+  .stat-card {
+    background: var(--card);
+    border-radius: var(--radius);
+    padding: 16px;
+    box-shadow: var(--shadow);
+  }
+  .stat-card .label { font-size: 12px; color: var(--muted); margin-bottom: 6px; }
+  .stat-card .value { font-size: 20px; font-weight: 700; letter-spacing: -0.5px; }
+  .stat-card.highlight { background: var(--text); color: #fff; }
+  .stat-card.highlight .label { color: #aaa; }
+  .stat-card.green .value { color: var(--nhap); }
+  .stat-card.blue .value { color: var(--ban); }
+  .stat-card.red .value { color: var(--accent); }
+
+  /* FORM NHẬP */
+  .form-card {
+    background: var(--card);
+    border-radius: var(--radius);
+    padding: 20px;
+    box-shadow: var(--shadow);
+    margin-bottom: 16px;
+  }
+  .form-card h3 { font-size: 15px; font-weight: 600; margin-bottom: 16px; }
+
+  .type-toggle {
+    display: flex;
+    background: var(--bg);
+    border-radius: 10px;
+    padding: 4px;
+    margin-bottom: 18px;
+    gap: 4px;
+  }
+  .type-btn {
+    flex: 1;
+    padding: 10px;
+    border: none;
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    background: none;
+    color: var(--muted);
+  }
+  .type-btn.active.nhap { background: var(--nhap); color: #fff; }
+  .type-btn.active.ban { background: var(--ban); color: #fff; }
+
+  .fields { display: grid; gap: 12px; }
+  .field label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 6px;
+  }
+  .field input {
+    width: 100%;
+    padding: 12px 14px;
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    font-family: inherit;
+    font-size: 15px;
+    background: var(--bg);
+    color: var(--text);
+    transition: border-color 0.2s;
+    -webkit-appearance: none;
+  }
+  .field input:focus { outline: none; border-color: var(--text); background: #fff; }
+  .field .hint { font-size: 11px; color: var(--muted); margin-top: 4px; }
+
+  .computed-box {
+    background: var(--bg);
+    border-radius: 10px;
+    padding: 14px;
+    text-align: center;
+    border: 1.5px dashed var(--border);
+  }
+  .computed-box .clabel { font-size: 11px; color: var(--muted); margin-bottom: 4px; }
+  .computed-box .cvalue { font-size: 22px; font-weight: 700; color: var(--text); }
+
+  .submit-btn {
+    width: 100%;
+    padding: 14px;
+    background: var(--text);
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    font-family: inherit;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 16px;
+    transition: opacity 0.2s;
+  }
+  .submit-btn:active { opacity: 0.8; }
+
+  /* LỊCH SỬ */
+  .history-list { display: grid; gap: 10px; }
+  .tx-card {
+    background: var(--card);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+    box-shadow: var(--shadow);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .tx-badge {
+    width: 40px; height: 40px;
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 700;
+    flex-shrink: 0;
+  }
+  .tx-badge.nhap { background: var(--nhap-bg); color: var(--nhap); }
+  .tx-badge.ban { background: var(--ban-bg); color: var(--ban); }
+  .tx-info { flex: 1; min-width: 0; }
+  .tx-main { font-size: 14px; font-weight: 600; }
+  .tx-sub { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .tx-amount { font-size: 15px; font-weight: 700; text-align: right; flex-shrink: 0; }
+  .tx-amount.nhap { color: var(--nhap); }
+  .tx-amount.ban { color: var(--ban); }
+  .tx-date { font-size: 11px; color: var(--muted); text-align: right; margin-top: 2px; }
+
+  .empty-state {
+    text-align: center;
+    padding: 48px 20px;
+    color: var(--muted);
+  }
+  .empty-state .icon { font-size: 40px; margin-bottom: 12px; }
+  .empty-state p { font-size: 14px; }
+
+  /* TOAST */
+  .toast {
+    position: fixed;
+    bottom: 24px; left: 50%;
+    transform: translateX(-50%) translateY(80px);
+    background: var(--text);
+    color: #fff;
+    padding: 12px 24px;
+    border-radius: 100px;
+    font-size: 14px;
+    font-weight: 500;
+    z-index: 999;
+    transition: transform 0.3s ease;
+    white-space: nowrap;
+  }
+  .toast.show { transform: translateX(-50%) translateY(0); }
+
+  .loading-overlay {
+    position: fixed; inset: 0;
+    background: rgba(245,243,238,0.9);
+    z-index: 150;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 15px;
+    color: var(--muted);
+  }
+  .spinner {
+    width: 24px; height: 24px;
+    border: 2px solid var(--border);
+    border-top-color: var(--text);
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    margin-right: 10px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .section-title {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    margin-bottom: 10px;
+  }
+</style>
+</head>
+<body>
+
+<!-- LOADING -->
+<div class="loading-overlay" id="loading" style="display:none">
+  <div class="spinner"></div> Đang tải...
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<!-- APP -->
+<header>
+  <h1>Sổ Doanh Thu</h1>
+  <span id="header-date"></span>
+</header>
+
+<div class="tabs">
+  <button class="tab active" onclick="switchTab('nhap-lieu')">Nhập liệu</button>
+  <button class="tab" onclick="switchTab('lich-su')">Lịch sử</button>
+  <button class="tab" onclick="switchTab('tong-hop')">Tổng hợp</button>
+</div>
+
+<!-- TAB: NHẬP LIỆU -->
+<div class="page active" id="tab-nhap-lieu">
+  <div class="form-card">
+    <div class="type-toggle">
+      <button class="type-btn active nhap" id="btn-nhap" onclick="setType('nhap')">📦 Nhập hàng</button>
+      <button class="type-btn ban" id="btn-ban" onclick="setType('ban')">🛒 Bán hàng</button>
+    </div>
+
+    <div class="fields" id="fields-nhap">
+      <div class="field">
+        <label>Ngày</label>
+        <input type="date" id="nhap-ngay" />
+      </div>
+      <div class="field">
+        <label>Số lượng nhập (bình)</label>
+        <input type="number" id="nhap-sl" placeholder="VD: 10" inputmode="numeric" oninput="updatePreview()" />
+      </div>
+      <div class="field">
+        <label>Tổng tiền nhập (đ)</label>
+        <input type="number" id="nhap-tien" placeholder="VD: 3720000" inputmode="numeric" oninput="updatePreview()" />
+        <div class="hint">Nhập tổng số tiền đã trả cho lần nhập này</div>
+      </div>
+    </div>
+
+    <div class="fields" id="fields-ban" style="display:none">
+      <div class="field">
+        <label>Ngày</label>
+        <input type="date" id="ban-ngay" />
+      </div>
+      <div class="field">
+        <label>Số lượng bán (bình)</label>
+        <input type="number" id="ban-sl" placeholder="VD: 5" inputmode="numeric" oninput="updatePreview()" />
+      </div>
+      <div class="field">
+        <label>Giá bán / bình (đ)</label>
+        <input type="number" id="ban-gia" placeholder="VD: 390000" inputmode="numeric" oninput="updatePreview()" />
+      </div>
+    </div>
+
+    <div style="margin-top: 16px;">
+      <div class="computed-box" id="preview-box">
+        <div class="clabel">Tổng tiền bán</div>
+        <div class="cvalue" id="preview-value">—</div>
+      </div>
+    </div>
+
+    <button class="submit-btn" onclick="submitForm()">Lưu giao dịch</button>
+  </div>
+</div>
+
+<!-- TAB: LỊCH SỬ -->
+<div class="page" id="tab-lich-su">
+  <p class="section-title">Giao dịch gần đây</p>
+  <div class="history-list" id="history-list">
+    <div class="empty-state">
+      <div class="icon">📋</div>
+      <p>Chưa có giao dịch nào</p>
+    </div>
+  </div>
+</div>
+
+<!-- TAB: TỔNG HỢP -->
+<div class="page" id="tab-tong-hop">
+  <p class="section-title">Tổng quan</p>
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="label">Tổng bình nhập</div>
+      <div class="value blue" id="s-sl-nhap">—</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">Tiền nhập</div>
+      <div class="value" id="s-tien-nhap">—</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">Tổng bình bán</div>
+      <div class="value blue" id="s-sl-ban">—</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">Doanh thu bán</div>
+      <div class="value green" id="s-doanh-thu">—</div>
+    </div>
+    <div class="stat-card highlight" style="grid-column: 1/-1;">
+      <div class="label">Lợi nhuận ước tính</div>
+      <div class="value" id="s-loi-nhuan" style="font-size:26px;">—</div>
+    </div>
+  </div>
+  <button class="submit-btn" style="background:#555" onclick="loadData()">🔄 Làm mới dữ liệu</button>
+</div>
+
+<script>
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxG-qUCNoG9MwimZWQ6I8tnxMAmqJK_0xggRcqn2J_peceOxgpQpriT9s5ka5K9Timo/exec';
+let currentType = 'nhap';
+
+// Init
+window.onload = () => {
+  document.getElementById('header-date').textContent = new Date().toLocaleDateString('vi-VN');
+  setDefaultDates();
+  loadData();
+};
+
+function setDefaultDates() {
+  const today = new Date().toISOString().split('T')[0];
+  document.getElementById('nhap-ngay').value = today;
+  document.getElementById('ban-ngay').value = today;
+}
+
+function switchTab(id) {
+  document.querySelectorAll('.tab').forEach((t,i) => {
+    t.classList.toggle('active', ['nhap-lieu','lich-su','tong-hop'][i] === id);
+  });
+  document.querySelectorAll('.page').forEach(p => {
+    p.classList.toggle('active', p.id === 'tab-' + id);
+  });
+}
+
+function setType(type) {
+  currentType = type;
+  document.getElementById('btn-nhap').className = 'type-btn' + (type==='nhap' ? ' active nhap' : '');
+  document.getElementById('btn-ban').className = 'type-btn' + (type==='ban' ? ' active ban' : '');
+  document.getElementById('fields-nhap').style.display = type==='nhap' ? '' : 'none';
+  document.getElementById('fields-ban').style.display = type==='ban' ? '' : 'none';
+  document.getElementById('preview-box').style.display = type==='ban' ? '' : 'none';
+  updatePreview();
+}
+
+function updatePreview() {
+  if (currentType !== 'ban') return;
+  const sl = parseFloat(document.getElementById('ban-sl').value) || 0;
+  const gia = parseFloat(document.getElementById('ban-gia').value) || 0;
+  const tong = sl * gia;
+  document.getElementById('preview-value').textContent = tong > 0 ? fmt(tong) + ' đ' : '—';
+}
+
+function fmt(n) {
+  return Math.round(n).toLocaleString('vi-VN');
+}
+
+function showLoading(v) {
+  document.getElementById('loading').style.display = v ? 'flex' : 'none';
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+async function submitForm() {
+  let payload = {};
+  if (currentType === 'nhap') {
+    const ngay = document.getElementById('nhap-ngay').value;
+    const sl = document.getElementById('nhap-sl').value;
+    const tien = document.getElementById('nhap-tien').value;
+    if (!ngay || !sl || !tien) { showToast('⚠️ Vui lòng điền đủ thông tin'); return; }
+    payload = { type: 'nhap', ngay, sl: parseFloat(sl), tien: parseFloat(tien), gia: 0, tong: 0 };
+  } else {
+    const ngay = document.getElementById('ban-ngay').value;
+    const sl = document.getElementById('ban-sl').value;
+    const gia = document.getElementById('ban-gia').value;
+    if (!ngay || !sl || !gia) { showToast('⚠️ Vui lòng điền đủ thông tin'); return; }
+    const tong = parseFloat(sl) * parseFloat(gia);
+    payload = { type: 'ban', ngay, sl: parseFloat(sl), gia: parseFloat(gia), tien: 0, tong };
+  }
+
+  showLoading(true);
+  try {
+    // Dùng GET với params thay vì POST để tránh CORS preflight trên iOS Safari
+    const params = new URLSearchParams({
+      action: 'add',
+      type: payload.type,
+      ngay: payload.ngay,
+      sl: payload.sl,
+      gia: payload.gia || 0,
+      tien: payload.tien || 0,
+      tong: payload.tong || 0
+    });
+    await fetch(SCRIPT_URL + '?' + params.toString(), { mode: 'no-cors' });
+    // no-cors không đọc được response nhưng request vẫn gửi thành công
+    showToast('✅ Đã lưu giao dịch!');
+    document.getElementById('nhap-sl').value = '';
+    document.getElementById('nhap-tien').value = '';
+    document.getElementById('ban-sl').value = '';
+    document.getElementById('ban-gia').value = '';
+    document.getElementById('preview-value').textContent = '—';
+    setDefaultDates();
+    // Delay nhỏ để Sheet kịp ghi xong trước khi đọc lại
+    setTimeout(() => loadData(), 1500);
+  } catch(e) {
+    showToast('❌ Lỗi kết nối. Kiểm tra internet.');
+    showLoading(false);
+  }
+}
+
+async function loadData() {
+  if (!SCRIPT_URL) return;
+  showLoading(true);
+  try {
+    const res = await fetch(SCRIPT_URL + '?action=get', { mode: 'cors' });
+    const data = await res.json();
+    renderHistory(data.rows || []);
+    renderStats(data.rows || []);
+  } catch(e) {
+    showToast('❌ Không tải được dữ liệu');
+  }
+  showLoading(false);
+}
+
+function renderHistory(rows) {
+  const el = document.getElementById('history-list');
+  if (!rows.length) {
+    el.innerHTML = `<div class="empty-state"><div class="icon">📋</div><p>Chưa có giao dịch nào</p></div>`;
+    return;
+  }
+  el.innerHTML = [...rows].reverse().map(r => {
+    const isNhap = r.type === 'nhap';
+    const label = isNhap ? 'NHẬP' : 'BÁN';
+    const main = isNhap
+      ? `Nhập ${fmt(r.sl)} bình`
+      : `Bán ${fmt(r.sl)} bình × ${fmt(r.gia)} đ`;
+    const amount = isNhap ? fmt(r.tien) : fmt(r.tong);
+    const sub = isNhap ? `Tổng tiền nhập` : `Tổng tiền bán`;
+    return `
+      <div class="tx-card">
+        <div class="tx-badge ${isNhap?'nhap':'ban'}">${label}</div>
+        <div class="tx-info">
+          <div class="tx-main">${main}</div>
+          <div class="tx-sub">${sub}</div>
+        </div>
+        <div>
+          <div class="tx-amount ${isNhap?'nhap':'ban'}">${amount} đ</div>
+          <div class="tx-date">${r.ngay}</div>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function renderStats(rows) {
+  let slNhap=0, tienNhap=0, slBan=0, doanhThu=0;
+  rows.forEach(r => {
+    if (r.type==='nhap') { slNhap += +r.sl; tienNhap += +r.tien; }
+    else { slBan += +r.sl; doanhThu += +r.tong; }
+  });
+  const loiNhuan = doanhThu - tienNhap;
+  document.getElementById('s-sl-nhap').textContent = fmt(slNhap) + ' bình';
+  document.getElementById('s-tien-nhap').textContent = fmt(tienNhap) + ' đ';
+  document.getElementById('s-sl-ban').textContent = fmt(slBan) + ' bình';
+  document.getElementById('s-doanh-thu').textContent = fmt(doanhThu) + ' đ';
+  const lnEl = document.getElementById('s-loi-nhuan');
+  lnEl.textContent = (loiNhuan >= 0 ? '+' : '') + fmt(loiNhuan) + ' đ';
+  lnEl.style.color = loiNhuan >= 0 ? '#4ade80' : '#f87171';
+}
+
+// Init preview box hidden
+document.getElementById('preview-box').style.display = 'none';
+</script>
+</body>
+</html>
