@@ -501,18 +501,20 @@ function renderHistory(rows) {
     const amount = isNhap ? fmt(r.tien) : fmt(r.tong);
     const fmtNgay = (ngay) => {
   if (!ngay) return '';
-  // Nếu là datetime từ sheet: "30/03/2026 11:53:41" → lấy phần ngày "30/03/2026"
-  if (String(ngay).includes(' ')) {
-    ngay = String(ngay).split(' ')[0]; // Bỏ phần time
+  // Convert từ YYYY-MM-DD hoặc YYYY/MM/DD sang DD/MM/YYYY
+  const parts = String(ngay).split(/[-\/]/); // Split bằng - hoặc /
+  if (parts.length === 3 && parts[0].length === 4) {
+    // Nếu là YYYY-MM-DD hoặc YYYY/MM/DD
+    return `${parts[2]}/${parts[1]}/${parts[0]}`;
   }
-  return ngay; // Return trực tiếp, không cần parse/transform
+  return ngay; // Return nguyên nếu không khớp format
 };
     return '<div class="tx-card">'
       + '<div class="tx-badge ' + (isNhap?'nhap':'ban') + '">' + label + '</div>'
       + '<div class="tx-info"><div class="tx-main">' + main + '</div></div>'
       + '<div style="text-align:right;flex-shrink:0">'
       + '<div class="tx-amount ' + (isNhap?'nhap':'ban') + '">' + amount + ' đ</div>'
-      + '<div class="tx-date">' + fmtNgay(r.timestamp) + '</div>'
+      + '<div class="tx-date">' + fmtNgay(r.ngay) + '</div>'
       + '</div></div>';
   }).join('');
 }
