@@ -512,7 +512,7 @@ function renderHistory(rows) {
       + '<div class="tx-info"><div class="tx-main">' + main + '</div></div>'
       + '<div style="text-align:right;flex-shrink:0">'
       + '<div class="tx-amount ' + (isNhap?'nhap':'ban') + '">' + amount + ' đ</div>'
-      + '<div class="tx-date">' + fmtNgay(r.ngay) + '</div>'
+      + '<div class="tx-date">' + fmtNgay(r.timestamp) + '</div>'
       + '</div></div>';
   }).join('');
 }
